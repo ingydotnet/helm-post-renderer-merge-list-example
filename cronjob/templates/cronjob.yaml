@@ -1,0 +1,33 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ template "cronjob.fullname" . }}
+  labels:
+    app: {{ template "cronjob.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  startingDeadlineSeconds: {{ .Values.cronjob.startingDeadlineSeconds }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: {{ template "cronjob.fullname" . }}
+        spec:
+          restartPolicy: Never
+          imagePullSecrets:
+          - name: quay-sts
+          containers:
+          - name: {{ template "cronjob.fullname" . }}
+            imagePullPolicy: Always
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            args:
+            - npm
+            - start
+            - {{ .Values.cronjob.fileName }}
+{{- if .Values.cronjob.env }}
+            env:
+{{ toYaml .Values.cronjob.env | indent 12 }}
+{{ end }}

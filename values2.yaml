@@ -1,0 +1,4 @@
+- name: FOO
+  value: new foo
+- name: BAZ
+  value: new baz

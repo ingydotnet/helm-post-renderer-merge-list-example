@@ -1,0 +1,11 @@
+image:
+  repository: nginx
+
+cronjob:
+  fileName: foo_job
+  schedule: "0 11 * * *"
+  env:
+  - name: FOO
+    value: foo
+  - name: BAR
+    value: bar

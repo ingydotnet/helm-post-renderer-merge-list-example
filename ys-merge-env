@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+source <(curl '-s' 'https://getys.org/run') "$@":
+
+# Usage:
+#   helm template cronjob --post-renderer=./ys-merge-env
+
+use:
+  yaml: :get load load-all dump-all
+  walk: :get prewalk
+
+# Get extra values files from VALUES_FILE env var:
+file =:
+  ENV.VALUES_FILE ||:
+    die: "$FILE requires VALUES_FILE var"
+
+# Load the file and get the env part:
+extra-values =: file:read:load
+
+# Loop over yaml documents in input, and update them:
+defn main(): !:dump-all:print
+  each doc IN:read:load-all:
+    update: doc
+
+# Only update "CronJob" documents in YAML.
+# Call out special list merge on env key:
+defn update(o):
+  when o.kind == 'CronJob':
+    prewalk _ o:
+      fn(o):
+        if o.env:
+          assoc-in o ['env']:
+            list-merge 'name': o.env extra-values
+          else: o
+
+# Our special merge function:
+defn list-merge(key list1 list2): !:vals
+  reduce \(%1.assoc(%2.$key %2)) {}:
+    list1 + list2
